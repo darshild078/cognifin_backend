@@ -5,7 +5,7 @@ Deterministic, read-only evaluation harness that validates retrieval
 correctness and isolation guarantees against the global corpus.
 
 Does NOT:
-    - Import FastAPI or OpenAI
+    - Import FastAPI or LLM SDKs
     - Mutate any corpus or index_cache
     - Persist anything to disk
     - Modify any existing backend module
@@ -18,7 +18,7 @@ Exit codes:
     0  — All tests passed
     1  — One or more tests failed
 
-Author: FinSight AI Team
+Author: CogniFin AI Team
 Stage: 10 (Retrieval Evaluation)
 """
 
@@ -43,14 +43,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Core pipeline imports (no FastAPI, no OpenAI)
-from core.retriever_pipeline import RetrieverPipeline
-from core.corpus_manager import CorpusManager
-from core.corpus_router import CorpusRouter
-from core.metadata_schema import ChunkMetadata, RetrievalResult
-from query.query_understanding import parse_query
-from query.search_plan_builder import build_plan
-from core.cache_utils import has_leftover_tmp, clean_cache
+# Core pipeline imports (no FastAPI, no LLM required)
+from app.rag.retriever_pipeline import RetrieverPipeline
+from app.rag.corpus_manager import CorpusManager
+from app.rag.corpus_router import CorpusRouter
+from app.rag.metadata_schema import ChunkMetadata, RetrievalResult
+from app.rag.query_understanding import parse_query
+from app.rag.search_plan_builder import build_plan
+from app.rag.cache_utils import has_leftover_tmp, clean_cache
 
 
 # =============================================================================

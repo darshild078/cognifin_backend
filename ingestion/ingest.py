@@ -32,9 +32,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from dotenv import load_dotenv
 load_dotenv()
 
-from core.retriever_pipeline import RetrieverPipeline
-from core.corpus_manager import CorpusManager
-from core.cache_utils import has_leftover_tmp, clean_cache
+from app.rag.retriever_pipeline import RetrieverPipeline
+from app.rag.corpus_manager import CorpusManager
+from app.rag.cache_utils import has_leftover_tmp, clean_cache
 
 
 def parse_args():

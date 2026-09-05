@@ -93,26 +93,22 @@ Open http://localhost:8000/docs in your browser and try:
 
 ```
 backend/
-├── main.py                  # FastAPI server (entry point)
-├── core/                    # Core RAG engine & storage
-│   ├── retriever_pipeline.py # Embedding & FAISS logic
-│   ├── corpus_manager.py     # Document state management
-│   ├── lookup_index.py       # Precomputed inverted index
-│   └── ...
-├── query/                   # Query understanding & planning
-│   ├── query_orchestrator.py # parse → plan → execute
-│   ├── query_understanding.py
-│   └── search_plan_builder.py
-├── generation/              # LLM generation layer
-│   ├── openai_client.py
-│   └── prompt_builder.py
-├── ingestion/               # CLI tools for data loading
-│   └── ingest.py            # Manual ingestion script
-├── tests/                   # Unit & evaluation suites
-├── data/                    # Raw PDF source files
-├── index_cache/             # Persisted FAISS index & metadata
-├── requirements.txt         # Python dependencies
-└── README.md                # This file
+├── app/
+│   ├── api/                 # Thin route controllers (no /v1 prefix)
+│   ├── core/                # Config, logging, DB, exceptions
+│   ├── schemas/             # Pydantic request/response schemas
+│   ├── services/            # Domain service layer (rag_service, etc.)
+│   ├── rag/                 # Vector engine, BM25, reranker, LLM client
+│   │   ├── llm_client.py    # Unified Google GenAI SDK client
+│   │   ├── corpus_manager.py
+│   │   ├── retriever_pipeline.py
+│   │   └── ...
+│   └── utils/               # Helpers & text processing
+├── tests/                   # Evaluation test suites
+├── data/                    # PDF documents
+├── index_cache/             # Serialized FAISS & BM25 indexes
+├── requirements.txt         # Dependencies
+└── README.md                # Documentation
 ```
 
 ---

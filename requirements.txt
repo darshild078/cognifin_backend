@@ -1,5 +1,6 @@
 fastapi==0.133.1
 uvicorn==0.41.0
+pydantic-settings>=2.0.0
 
 numpy==2.4.2
 scikit-learn==1.8.0
@@ -10,8 +11,9 @@ rank-bm25==0.2.2
 
 transformers
 sentence-transformers
+huggingface_hub
 
-openai==2.24.0
+google-genai>=2.0.0
 
 pymongo==4.17.0
 motor==3.7.1
@@ -26,5 +28,7 @@ requests==2.34.0
 Authlib==1.7.0
 python-jose==3.5.0
 email-validator==2.3.0
+bcrypt>=4.0.0
 
 jinja2==3.1.6
+itsdangerous>=2.2.0

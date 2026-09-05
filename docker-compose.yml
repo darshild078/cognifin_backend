@@ -1,0 +1,39 @@
+name: cognifin
+
+services:
+  mongodb:
+    image: mongo:7.0
+    container_name: cognifin-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: finsightai
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - cognifin_network
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: cognifin-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+    depends_on:
+      - mongodb
+    networks:
+      - cognifin_network
+
+volumes:
+  mongodb_data:
+    name: cognifin_mongodb_data
+    driver: local
+
+networks:
+  cognifin_network:
+    name: cognifin_network

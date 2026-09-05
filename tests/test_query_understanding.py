@@ -15,7 +15,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
-from query.query_understanding import (
+from app.rag.query_understanding import (
     ParsedQuery,
     detect_companies,
     extract_years,

@@ -18,10 +18,10 @@ import numpy as np
 import pytest
 from unittest.mock import MagicMock
 
-from core.metadata_schema import RetrievalResult
-from core.lookup_index import RetrievalScope
-from query.search_plan import SearchPlan, SubQuery, MergeStrategy
-from core.corpus_manager import CorpusManager
+from app.rag.metadata_schema import RetrievalResult
+from app.rag.lookup_index import RetrievalScope
+from app.rag.search_plan import SearchPlan, SubQuery, MergeStrategy
+from app.rag.corpus_manager import CorpusManager
 
 
 # =============================================================================

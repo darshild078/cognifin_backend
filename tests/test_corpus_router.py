@@ -19,11 +19,11 @@ from dataclasses import dataclass, replace as dc_replace
 from unittest.mock import MagicMock
 from typing import List
 
-from core.corpus_manager import CorpusManager
-from core.corpus_router import CorpusRouter, _merge_by_score, _apply_merge_strategy
-from core.metadata_schema import RetrievalResult
-from core.lookup_index import RetrievalScope
-from query.search_plan import SearchPlan, SubQuery, MergeStrategy
+from app.rag.corpus_manager import CorpusManager
+from app.rag.corpus_router import CorpusRouter, _merge_by_score, _apply_merge_strategy
+from app.rag.metadata_schema import RetrievalResult
+from app.rag.lookup_index import RetrievalScope
+from app.rag.search_plan import SearchPlan, SubQuery, MergeStrategy
 
 
 # =============================================================================
