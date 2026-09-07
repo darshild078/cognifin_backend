@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from app.schemas.common import ApiResponse, success_response
 from app.schemas.health import HealthResponseData
 from app.services.rag_service import rag_service
+from app.core.config import settings
 
 router = APIRouter(tags=["System"])
 
@@ -23,10 +24,10 @@ def health_check():
 
 @router.get("/")
 def root():
+    info = {"health": "/health", "status": "online"}
+    if settings.ENABLE_DOCS:
+        info["docs"] = "/docs"
     return success_response(
         message="Welcome to CogniFin AI API",
-        data={
-            "docs": "/docs",
-            "health": "/health",
-        },
+        data=info,
     )

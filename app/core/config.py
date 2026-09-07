@@ -14,6 +14,8 @@ class Settings(BaseSettings):
     API_TITLE: str = "CogniFin AI"
     API_DESCRIPTION: str = "Enterprise Financial RAG API for Indian Document Analysis"
     API_VERSION: str = "3.0.0"
+    ENVIRONMENT: str = "production"
+    ENABLE_DOCS: bool = False
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     @property

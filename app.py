@@ -1,15 +1,17 @@
-﻿import gradio as gr
+import gradio as gr
 from app.main import app as fastapi_app
+from app.core.config import settings
 
-# Gradio interface for browser visitors
-with gr.Blocks(title="CogniFin AI Backend") as demo:
-    gr.Markdown("# 🚀 CogniFin AI Enterprise Backend is Live")
+# Secure status interface for browser visitors
+docs_line = "- 📖 **API Docs:** [/docs](/docs)\n" if settings.ENABLE_DOCS else ""
+
+with gr.Blocks(title="CogniFin AI Gateway") as demo:
+    gr.Markdown("# 🛡️ CogniFin AI Production Gateway")
     gr.Markdown(
-        """
-        The **CogniFin Financial RAG Backend** is active and serving requests.
+        f"""
+        The **CogniFin Enterprise Financial API** is operational.
         
-        - 📖 **API Docs:** [/docs](/docs)
-        - 🩺 **System Health:** [/health](/health)
+        {docs_line}- 🩺 **System Health:** [/health](/health)
         """
     )
 
