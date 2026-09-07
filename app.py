@@ -1,18 +1,20 @@
-﻿import os
-import uvicorn
-import gradio as gr
+﻿import gradio as gr
 from app.main import app as fastapi_app
 
-# Status page for browser visitors on Hugging Face Spaces
+# Gradio interface for browser visitors
 with gr.Blocks(title="CogniFin AI Backend") as demo:
     gr.Markdown("# 🚀 CogniFin AI Enterprise Backend is Live")
     gr.Markdown(
-        "The **CogniFin Financial RAG Backend** is active and serving requests."
+        """
+        The **CogniFin Financial RAG Backend** is active and serving requests.
+        
+        - 📖 **API Docs:** [/docs](/docs)
+        - 🩺 **System Health:** [/health](/health)
+        """
     )
 
-# Mount Gradio app onto FastAPI app
-app = gr.mount_gradio_app(fastapi_app, demo, path="/")
+# Mount FastAPI app onto Gradio's internal FastAPI application
+demo.app.mount("", fastapi_app)
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 7860))
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    demo.launch()
