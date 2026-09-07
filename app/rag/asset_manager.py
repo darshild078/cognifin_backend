@@ -18,27 +18,21 @@ def download_cache():
     return tar_path
 
 
-def extract_cache():
-
-    print("Extracting index cache...")
-
-    with tarfile.open("index_cache.tar.gz", "r:gz") as tar:
-        tar.extractall()
-
-    os.remove("index_cache.tar.gz")
-
-    print("Extraction complete.")
+def extract_cache(tar_path: str):
+    logger.info(f"Extracting index cache from {tar_path}...")
+    with tarfile.open(tar_path, "r:gz") as tar:
+        tar.extractall(path=".")
+    logger.info("Index cache extraction complete.")
 
 
 def ensure_index_cache():
-
     if ASSET_MODE == "local":
-        print("Using local assets.")
+        logger.info("Using local assets.")
         return
 
-    if os.path.exists("index_cache"):
-        print("index_cache already exists.")
+    if os.path.exists("index_cache") and os.path.exists("index_cache/faiss.index"):
+        logger.info("index_cache already exists and populated.")
         return
 
-    download_cache()
-    extract_cache()
+    tar_path = download_cache()
+    extract_cache(tar_path)

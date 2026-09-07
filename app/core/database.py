@@ -13,8 +13,8 @@ _mongo_available = False
 try:
     client = MongoClient(
         settings.MONGO_URI,
-        serverSelectionTimeoutMS=1000,
-        connectTimeoutMS=1000,
+        serverSelectionTimeoutMS=10000,
+        connectTimeoutMS=10000,
     )
     db = client[settings.MONGO_DB_NAME]
     _raw_users = db["users"]
