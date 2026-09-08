@@ -1,5 +1,4 @@
 from functools import lru_cache
-from typing import List, Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,14 +18,27 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: str = "http://localhost:5173,http://localhost:3000"
 
     @property
-    def allowed_origins_list(self) -> List[str]:
+    def allowed_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
 
     # Backend Core & Retrieval
     PDF_PATH: str = "data/sample.pdf"
     INDEX_CACHE_DIR: str = "index_cache"
     ASSET_MODE: str = "local"
-    HF_CACHE_URL: Optional[str] = None
+    HF_CACHE_URL: str | None = None
+    HF_REPO_ID: str = "TheLunatic078/cognifin-assets"
+    HF_TOKEN: str | None = None
+    SPACE_ID: str | None = None
+
+    @property
+    def is_hf_space(self) -> bool:
+        return bool(self.SPACE_ID)
+
+    @property
+    def asset_mode_resolved(self) -> str:
+        if self.ASSET_MODE in ("local", "huggingface"):
+            return self.ASSET_MODE
+        return "huggingface" if self.is_hf_space else "local"
 
     EMBEDDING_MODEL: str = "BAAI/bge-base-en-v1.5"
     CHUNK_SIZE: int = 1000

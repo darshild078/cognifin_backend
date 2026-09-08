@@ -48,6 +48,8 @@ from app.rag.cache_utils import atomic_write_bytes, atomic_write_json, atomic_fa
 # Retrieval result data contract (owned by metadata_schema)
 from app.rag.metadata_schema import RetrievalResult
 
+from app.core.config import settings
+
 # Load environment variables
 load_dotenv()
 
@@ -336,7 +338,7 @@ class RetrieverPipeline:
                        Default: Uses EMBEDDING_MODEL from app.rag.env or 'all-MiniLM-L6-v2'
         """
         if model_name is None:
-            model_name = os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+            model_name = settings.EMBEDDING_MODEL
         
         logger.info(f"Loading embedding model: {model_name}")
         
@@ -771,9 +773,9 @@ class RetrieverPipeline:
             "config_fingerprint": self.compute_config_fingerprint(),
             "source_pdf_hash": pdf_hash,
             "source_pdf_path": pdf_path,
-            "embedding_model": os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
-            "chunk_size": int(os.getenv("CHUNK_SIZE", 500)),
-            "chunk_overlap": int(os.getenv("CHUNK_OVERLAP", 50)),
+            "embedding_model": settings.EMBEDDING_MODEL,
+            "chunk_size": settings.CHUNK_SIZE,
+            "chunk_overlap": settings.CHUNK_OVERLAP,
             "num_chunks": len(self.chunks),
             "embedding_dim": self.embedding_dim,
             "chunk_order_sentinel": self.compute_chunk_sentinels(
@@ -883,12 +885,12 @@ class RetrieverPipeline:
         Any change in these values means the cache is incompatible.
         """
         config = {
-            "embedding_model": os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
-            "chunk_size": int(os.getenv("CHUNK_SIZE", 500)),
-            "chunk_overlap": int(os.getenv("CHUNK_OVERLAP", 50)),
+            "embedding_model": settings.EMBEDDING_MODEL,
+            "chunk_size": settings.CHUNK_SIZE,
+            "chunk_overlap": settings.CHUNK_OVERLAP,
             "normalization_version": NORMALIZATION_VERSION,
             "metadata_schema_version": METADATA_SCHEMA_VERSION,
-            "query_instruction": os.getenv("QUERY_INSTRUCTION", ""),
+            "query_instruction": settings.QUERY_INSTRUCTION,
         }
         config_str = json.dumps(config, sort_keys=True)
         return hashlib.sha256(config_str.encode()).hexdigest()

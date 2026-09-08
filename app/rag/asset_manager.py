@@ -1,31 +1,29 @@
-import os
-import logging
+from pathlib import Path
 from huggingface_hub import snapshot_download
 
-logger = logging.getLogger("cognifin.rag.assets")
-
-ASSET_MODE = os.getenv("ASSET_MODE", "local")
-HF_REPO_ID = os.getenv("HF_REPO_ID", "")
+from app.core.config import settings
+from app.core.logging import logger
 
 
-def ensure_index_cache():
-    if ASSET_MODE == "local":
-        logger.info("Using local assets.")
+def ensure_index_cache() -> None:
+    index_path = Path(settings.INDEX_CACHE_DIR) / "faiss.index"
+    if index_path.exists():
+        logger.info("module=assets action=ensure_cache status=skipped reason=cache_exists")
         return
 
-    if os.path.exists("index_cache/faiss.index"):
-        logger.info("index_cache already exists and populated.")
+    if not settings.HF_REPO_ID:
+        logger.error("module=assets action=ensure_cache status=failed error='HF_REPO_ID is not configured'")
         return
 
-    if not HF_REPO_ID:
-        logger.error("action=ensure_index_cache status=missing_config error='HF_REPO_ID environment variable is not configured.'")
-        return
-
-    logger.info(f"Downloading index cache from HuggingFace dataset '{HF_REPO_ID}'...")
-    snapshot_download(
-        repo_id=HF_REPO_ID,
-        repo_type="dataset",
-        local_dir="index_cache",
-        token=os.getenv("HF_TOKEN") or None,
-    )
-    logger.info("Index cache download complete.")
+    logger.info(f"module=assets action=download_cache repo_id={settings.HF_REPO_ID} status=starting")
+    try:
+        snapshot_download(
+            repo_id=settings.HF_REPO_ID,
+            repo_type="dataset",
+            local_dir=settings.INDEX_CACHE_DIR,
+            token=settings.HF_TOKEN or None,
+        )
+        logger.info(f"module=assets action=download_cache repo_id={settings.HF_REPO_ID} status=success")
+    except Exception as exc:
+        logger.error(f"module=assets action=download_cache repo_id={settings.HF_REPO_ID} status=failed error='{exc}'")
+        raise
