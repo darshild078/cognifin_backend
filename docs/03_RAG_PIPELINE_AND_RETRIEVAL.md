@@ -45,7 +45,7 @@ User Question: "What was Tata Motors FY24 automotive revenue?"
                         ▼
    ┌─────────────────────────────────────────┐
    │ 6. Grounded Answer Generation           │
-   │    Google GenAI SDK (gemini-2.0-flash)  │
+   │    Google GenAI SDK (gemini-3.6-flash)  │
    │    Temperature = 0.0                    │
    └────────────────────┬────────────────────┘
                         │
@@ -92,7 +92,7 @@ To ensure precision across identical financial metrics across different years:
 ---
 
 ### 5. Grounded Generation (Google GenAI SDK)
-- **Engine:** Google Gemini (`gemini-2.0-flash` or `gemini-1.5-flash`).
+- **Engine:** Google Gemini (`gemini-3.6-flash` or `gemini-1.5-flash`).
 - **Deterministic Output:** `temperature = 0.0` ensures the model adheres strictly to the provided context without hallucination.
 - **Citation Syntax:** The LLM is instructed to append `[chunk_XXXXX]` after any stated fact.
 

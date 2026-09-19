@@ -34,9 +34,19 @@ import fitz  # PyMuPDF
 
 # Embeddings
 from sentence_transformers import SentenceTransformer
+# Embeddings (Optional in cloud-native mode)
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
 
 # Vector database
 import faiss
+# Vector database (Optional in cloud-native mode)
+try:
+    import faiss
+except ImportError:
+    faiss = None
 import numpy as np
 
 # Configuration
@@ -571,6 +581,7 @@ class RetrieverPipeline:
             Normalized numpy array of shape (len(texts), embedding_dim)
         """
         logger.info("Embedding %d texts...", len(texts))
+        logger.debug("Embedding %d texts...", len(texts))
         
         # Apply instruction prefix if provided (asymmetric retrieval)
         encode_texts = texts
@@ -591,6 +602,7 @@ class RetrieverPipeline:
         faiss.normalize_L2(embeddings)
         
         logger.info("Embeddings shape: %s", embeddings.shape)
+        logger.debug("Embeddings shape: %s", embeddings.shape)
         return embeddings
     
     def embed_query(self, query: str) -> np.ndarray:

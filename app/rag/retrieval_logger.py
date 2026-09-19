@@ -37,9 +37,12 @@ def configure_retrieval_logging() -> None:
 
     Defaults to DEBUG so retrieval diagnostics are always available
     during Phase 1 tuning. Set LOG_LEVEL=INFO in production to reduce noise.
+    Defaults to WARNING/INFO to maintain clean, production single-line logs.
     """
     level_name = os.getenv("LOG_LEVEL", "DEBUG").upper()
     level = getattr(logging, level_name, logging.DEBUG)
+    level_name = os.getenv("LOG_LEVEL", "WARNING").upper()
+    level = getattr(logging, level_name, logging.WARNING)
     logger.setLevel(level)
 
     # Add a handler if none exist (avoid duplicate handlers on reload)

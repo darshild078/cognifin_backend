@@ -151,7 +151,7 @@ Generates a grounded financial answer from the corpus with source citations.
       "intent": "lookup",
       "latency_ms": 1120,
       "sources_used": 5,
-      "model": "gemini-2.0-flash"
+      "model": "gemini-3.6-flash"
     },
     "follow_ups": [
       "What was Jaguar Land Rover's contribution to Tata Motors revenue?",

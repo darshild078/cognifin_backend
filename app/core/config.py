@@ -41,8 +41,15 @@ class Settings(BaseSettings):
         return "huggingface" if self.is_hf_space else "local"
 
     EMBEDDING_MODEL: str = "BAAI/bge-base-en-v1.5"
+    EMBEDDING_MODEL: str = "gemini-embedding-001"
+    EMBEDDING_DIM: int = 768
     CHUNK_SIZE: int = 1000
     CHUNK_OVERLAP: int = 200
+
+    # Qdrant Cloud Vector Database
+    QDRANT_URL: str = ""
+    QDRANT_API_KEY: str = ""
+    QDRANT_COLLECTION_NAME: str = "cognifin_corpus"
 
     RETRIEVAL_K: int = 10
     FINAL_K: int = 5
@@ -86,8 +93,8 @@ class Settings(BaseSettings):
     # LLM & Generation (Google GenAI SDK)
     LLM_API_KEY: str = ""
     GEMINI_API_KEY: str = ""
-    LLM_MODEL: str = "gemini-2.0-flash"
-    GEMINI_MODEL: str = "gemini-2.0-flash"
+    LLM_MODEL: str = "gemini-3.6-flash"
+    GEMINI_MODEL: str = "gemini-3.6-flash"
 
     # Database
     MONGO_URI: str = "mongodb://localhost:27017"

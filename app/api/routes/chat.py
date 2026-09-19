@@ -1,5 +1,6 @@
 from typing import Dict, Any
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 
 from app.api.deps import get_current_user
 from app.schemas.common import ApiResponse, success_response
@@ -13,3 +14,20 @@ router = APIRouter(tags=["Generation"])
 def chat(request: ChatRequest, current_user: Dict[str, Any] = Depends(get_current_user)):
     result = rag_service.chat(request=request, user_id=current_user["user_id"])
     return success_response(message="Answer generated successfully.", data=result)
+
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest, current_user: Dict[str, Any] = Depends(get_current_user)):
+    """
+    Real-time Server-Sent Events (SSE) token streaming for RAG generation.
+    """
+    return StreamingResponse(
+        rag_service.chat_stream(request=request, user_id=current_user["user_id"]),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+

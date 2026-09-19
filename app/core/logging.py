@@ -45,6 +45,7 @@ def setup_logging(level: int = logging.INFO):
     logger.addHandler(handler)
 
     # Silence noisy third-party libraries
+    # Silence noisy third-party libraries & verbose debug loggers
     noisy_loggers = [
         "httpx",
         "httpcore",
@@ -55,6 +56,12 @@ def setup_logging(level: int = logging.INFO):
         "pymongo",
         "multipart",
         "asyncio",
+        "google",
+        "google_genai",
+        "google_genai.models",
+        "finsight.retrieval",
+        "faiss",
+        "faiss.loader",
     ]
     for name in noisy_loggers:
         logging.getLogger(name).setLevel(logging.WARNING)

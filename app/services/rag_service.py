@@ -1,7 +1,9 @@
 import os
 import time
+import json
 import logging
 from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, AsyncIterator
 
 from app.core.config import settings
 from app.core.exceptions import DependencyUnavailableException, BadRequestException, NotFoundException
@@ -32,11 +34,14 @@ from app.rag.latency_tracker import LatencyTracker, latency_stats
 from app.rag.cache_utils import has_leftover_tmp, clean_cache
 from app.rag.asset_manager import ensure_index_cache
 
+from app.rag.cloud_vector_store import cloud_vector_store, CloudVectorStore, VectorSearchResult
+
 logger = logging.getLogger("cognifin.service.rag")
 
 
 class RagService:
     def __init__(self):
+        self.cloud_store: CloudVectorStore = cloud_vector_store
         self.pipeline: Optional[RetrieverPipeline] = None
         self.corpus_manager: Optional[CorpusManager] = None
         self.corpus_router: Optional[CorpusRouter] = None
@@ -45,6 +50,15 @@ class RagService:
 
     def initialize(self):
         start_time = time.time()
+        self.llm_client = LLMClient()
+        self.cloud_store = cloud_vector_store
+
+        # If Cloud Qdrant Vector Store is configured, ready instantly!
+        if self.cloud_store.is_configured:
+            self.is_ready = True
+            logger.info("action=rag_init status=success mode=cloud_qdrant duration=0.05s")
+            return
+
         cache_dir = settings.INDEX_CACHE_DIR
 
         self.pipeline = RetrieverPipeline()
@@ -173,7 +187,29 @@ class RagService:
                 follow_ups=cached.get("follow_ups", []),
             )
 
-        if request.session_id is not None:
+        # Check if Cloud Qdrant Vector Store is active
+        if self.cloud_store.is_configured:
+            with tracker.track("retrieval"):
+                query_vec = self.llm_client.embed_text(request.question)
+                cloud_results = self.cloud_store.search(
+                    query_vector=query_vec,
+                    top_k=top_k,
+                    threshold=settings.SIMILARITY_THRESHOLD,
+                )
+                results = [
+                    VectorSearchResult(
+                        chunk_id=r.chunk_id,
+                        snippet=r.snippet,
+                        score=r.score,
+                        document_label=r.document_label,
+                        page_number=r.page_number,
+                        pdf_url=r.pdf_url,
+                    )
+                    for r in cloud_results
+                ]
+            context, chunk_ids = build_context(results)
+
+        elif request.session_id is not None:
             with tracker.track("retrieval"):
                 entities = self.corpus_manager.list_available_entities()
                 companies = entities.get("companies", [])
@@ -311,5 +347,131 @@ class RagService:
         )
         return response_data
 
+    async def chat_stream(self, request: ChatRequest, user_id: str):
+        """
+        Stream grounded AI responses token-by-token via Server-Sent Events (SSE).
+        """
+        if not self.is_ready:
+            yield f"data: {json.dumps({'event': 'error', 'error': 'Vector corpus is initializing.'})}\n\n"
+            return
+
+        if self.llm_client is None or not self.llm_client.is_configured:
+            yield f"data: {json.dumps({'event': 'error', 'error': 'LLM API key is not configured.'})}\n\n"
+            return
+
+        tracker = LatencyTracker()
+        top_k = request.top_k or settings.TOP_K
+        intent = "lookup"
+
+        # 1. High-speed retrieval
+        if self.cloud_store.is_configured:
+            with tracker.track("retrieval"):
+                query_vec = self.llm_client.embed_text(request.question)
+                cloud_results = self.cloud_store.search(
+                    query_vector=query_vec,
+                    top_k=top_k,
+                    threshold=settings.SIMILARITY_THRESHOLD,
+                )
+                results = [
+                    VectorSearchResult(
+                        chunk_id=r.chunk_id,
+                        snippet=r.snippet,
+                        score=r.score,
+                        document_label=r.document_label,
+                        page_number=r.page_number,
+                        pdf_url=r.pdf_url,
+                    )
+                    for r in cloud_results
+                ]
+            context, chunk_ids = build_context(results)
+        elif request.session_id is not None and self.corpus_manager is not None:
+            with tracker.track("retrieval"):
+                entities = self.corpus_manager.list_available_entities()
+                companies = entities.get("companies", [])
+                parsed = parse_query(request.question, companies)
+                plan = build_plan(parsed, top_k)
+                results = self.corpus_router.execute_plan(
+                    plan,
+                    embed_query=lambda q: self.pipeline.embed_query(q),
+                    session_id=request.session_id,
+                )
+            context, chunk_ids = build_context(results)
+        else:
+            with tracker.track("retrieval"):
+                results, _ = retrieve_context(
+                    raw_query=request.question,
+                    corpus_manager=self.corpus_manager,
+                    embed_query=lambda q: self.pipeline.embed_query(q) if self.pipeline else [],
+                    default_top_k=top_k,
+                )
+            context, chunk_ids = build_context(results)
+
+        evidence = [
+            EvidenceItem(
+                chunk_id=r.chunk_id,
+                snippet=r.snippet,
+                page_number=r.page_number,
+                document_label=r.document_label,
+                pdf_url=r.pdf_url,
+            )
+            for r in results
+        ]
+
+        # Emit initial metadata event
+        meta_event = {
+            "event": "metadata",
+            "evidence": [e.model_dump() for e in evidence],
+            "retrieval_ms": round(tracker.get_total_ms()),
+        }
+        yield f"data: {json.dumps(meta_event)}\n\n"
+
+        # 2. Token-by-token streaming from Gemini
+        system_prompt, user_message = build_prompt(context, request.question)
+        chunks_accumulated = []
+
+        try:
+            for token in self.llm_client.stream_generate(system_prompt, user_message):
+                chunks_accumulated.append(token)
+                yield f"data: {json.dumps({'event': 'token', 'token': token})}\n\n"
+        except Exception as e:
+            logger.error(f"Streaming token generation error: {e}")
+            yield f"data: {json.dumps({'event': 'error', 'error': str(e)})}\n\n"
+            return
+
+        raw_answer = "".join(chunks_accumulated)
+        answer, follow_ups = extract_follow_ups(raw_answer)
+        citations = extract_citations(answer, chunk_ids)
+        confidence, conf_label = compute_confidence(results, answer, request.question, citations)
+
+        # 3. Persist conversation to database
+        user_msg = {"role": "user", "content": request.question, "metadata": {}}
+        assistant_msg = {
+            "role": "assistant",
+            "content": answer,
+            "metadata": {"citations": citations, "evidence": [e.model_dump() for e in evidence]},
+        }
+
+        conv_id = request.conversation_id
+        try:
+            if conv_id:
+                append_to_conversation(conv_id, user_id, user_msg, assistant_msg)
+            else:
+                title = request.question[:60] + ("..." if len(request.question) > 60 else "")
+                conv_id = create_conversation(user_id, title, user_msg, assistant_msg)
+        except Exception as persist_err:
+            logger.warning(f"action=conversation_persist_failed error='{persist_err}'")
+
+        done_event = {
+            "event": "done",
+            "conversation_id": conv_id,
+            "citations": citations,
+            "confidence": confidence,
+            "confidence_label": conf_label,
+            "follow_ups": follow_ups,
+            "total_ms": round(tracker.get_total_ms()),
+        }
+        yield f"data: {json.dumps(done_event)}\n\n"
+
 
 rag_service = RagService()
+

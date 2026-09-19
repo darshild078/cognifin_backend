@@ -76,7 +76,7 @@ ASSET_MODE=local
 
 # Google Gemini LLM (Paste your API key here)
 GEMINI_API_KEY=AIzaSy...your_gemini_api_key_here
-GEMINI_MODEL=gemini-2.0-flash
+GEMINI_MODEL=gemini-3.6-flash
 
 # Database (Local Docker MongoDB)
 MONGO_URI=mongodb://localhost:27017
@@ -144,7 +144,7 @@ Once started, you will see:
 2026-09-05 [INFO] app.rag.retriever_pipeline: Loaded index from cache: 233706 chunks
 2026-09-05 [INFO] app.rag.corpus_manager: Registry loaded: 139 document(s), 233706 vectors
 2026-09-05 [INFO] app.rag.bm25_retriever: 📂 BM25 index loaded from disk: 233706 documents in 2.56s
-2026-09-05 [INFO] cognifin.rag.llm: LLM Client initialized with Google GenAI SDK (model: gemini-2.0-flash)
+2026-09-05 [INFO] cognifin.rag.llm: LLM Client initialized with Google GenAI SDK (model: gemini-3.6-flash)
 2026-09-05 [INFO] cognifin: CogniFin AI application ready.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
